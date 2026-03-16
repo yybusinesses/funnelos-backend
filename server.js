@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 app.post('/generate', async (req, res) => {
   try {
@@ -21,14 +21,25 @@ app.post('/generate', async (req, res) => {
         messages: req.body.messages
       })
     });
+
     const data = await response.json();
+
+    console.log('Anthropic status:', response.status);
+    if (data.error) {
+      console.error('Anthropic error:', JSON.stringify(data.error));
+    }
+
     res.json(data);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Server error:', err.message);
+    res.status(500).json({ error: { message: err.message } });
   }
 });
 
-app.get('/', (req, res) => res.send('FunnelOS API running'));
+app.get('/', (req, res) => {
+  res.send('Brand Visable API — running');
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
